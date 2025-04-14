@@ -115,6 +115,10 @@ To remove the containers using docker compose (or `make clean`):
 ```bash
 docker-compose down
 ```
+Confrim none of containers is running
+``` bash
+docker ps -a
+````
 
 ## Stargazers over time
 
