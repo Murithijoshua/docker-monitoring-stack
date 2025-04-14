@@ -1,93 +1,123 @@
-# docker-monitoring-stack
+# docker-monitoring-stack-gpnc
+Grafana Prometheus Node-Exporter cAdvisor Loki - Docker Monitoring Stack
 
+## About
 
+Get your monitoring stack up and running with one command using a Docker Compose stack featuring:
 
-## Getting started
+- **[Grafana](https://github.com/grafana/grafana)**: Dashboarding.
+- **[Prometheus](https://github.com/prometheus/prometheus)**: Timeseries database for metrics.
+- **[Node-Exporter](https://github.com/prometheus/node_exporter)**: Node metrics.
+- **[cAdvisor](https://github.com/google/cadvisor)**: Container metrics.
+- **[Alertmanager](https://github.com/prometheus/alertmanager)**: Alerting system.
+- **[Uncomplicated Alert Receiver](https://github.com/jamesread/uncomplicated-alert-receiver)**: UI with Received Alerts.
+- **[Loki](https://github.com/grafana/loki)**: Logs (including explore-logs).
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+## Makefile
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+[Note](https://docs.docker.com/compose/install/linux/): Due to `docker-compose` and the `compose` plugin, you might have one of the two installed. I have a `Makefile` that will detect which on you have installed.
 
-## Add your files
+You can list the targets using `make`.
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/topics/git/add_files/#add-files-to-a-git-repository) or push an existing Git repository with the following command:
+## Boot
 
+Boot the stack with docker compose (or `make up`):
+
+```bash
+docker-compose up -d
 ```
-cd existing_repo
-git remote add origin https://gitlab.com/Murithijoshua/docker-monitoring-stack.git
-git branch -M main
-git push -uf origin main
+
+Ensure all containers are running:
+
+```bash
+docker-compose ps
 ```
 
-## Integrate with your tools
+The output should looke like this:
 
-- [ ] [Set up project integrations](https://gitlab.com/Murithijoshua/docker-monitoring-stack/-/settings/integrations)
+```bash
+    Name                      Command                          State          Ports         
+-----------------------------------------------------------------------------------------------------
+cadvisor                      /usr/bin/cadvisor -logtostderr   Up (healthy)   8080/tcp              
+grafana                       /run.sh                          Up             0.0.0.0:3000->3000/tcp
+node-exporter                 /bin/node_exporter --path. ...   Up             9100/tcp              
+prometheus                    /bin/prometheus --config.f ...   Up             0.0.0.0:9090->9090/tcp
+alertmanager                  /bin/alertmanager --config ...   Up             0.0.0.0:9093->9093/tcp
+loki                          /usr/bin/loki -conf ...          Up             0.0.0.0:3100->3100/tcp
+promtail                      /usr/bin/promtail ...            Up
+uncomplicated-alert-receiver  /app/uar                         Up             0.0.0.0:9094->8080/tcp
+```
 
-## Collaborate with your team
+## Access Grafana
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/user/project/merge_requests/auto_merge/)
+Access grafana on [Grafana Home](http://localhost:3000/?orgId=1) (or `make open`) and you should see the three dashboards that was provisioned:
 
-## Test and Deploy
+![](./assets/grafana-home.png)
 
-Use the built-in continuous integration in GitLab.
+Once you select the **Node Metrics** dashboard, it should look something like this:
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+![](./assets/grafana-dashboard.png)
 
-***
+When you select ["Alerting" and "Alert rules"](http://localhost:3000/alerting/list) you will find the recording and alerting rules:
 
-# Editing this README
+![](./assets/grafana-alerting-home.png)
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+We can expand the alerting rules:
 
-## Suggestions for a good README
+![](./assets/grafana-alerting-rules.png)
 
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+And then we can view more detail on a alert rule:
 
-## Name
-Choose a self-explaining name for your project.
+![](./assets/grafana-alerting-detail.png)
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+When we see one of our alerts are in an alert state:
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+![](./assets/grafana-alert-state.png)
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+We will see them be displayed in Uncomplicated Alert Receiver:
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+![](./assets/uar-alert-view.png)
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+And for our container metrics we can access the **Container Metrics** dashboard:
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+![](./assets/grafana-container-metrics.png)
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+Then for our last dashboard, the **Container Log Search**, by default the metric panel will be collapsed, but to expand it for visibility it will look like this:
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+![](./assets/grafana-logs-search-dashboard.png)
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+And we can also view our **Container Logs** in the explore section:
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+![](./assets/grafana-logs-view.png)
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+For discovering the **Logs** we can navigate to the Explore / Logs view:
 
-## License
-For open source projects, say how it is licensed.
+![](./assets/grafana-explore-logs.png)
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+## Endpoints
+
+The following endpoints are available:
+
+| Container                    | Internal Endpoint                         | External Endpoint     |
+| ---------------------------- | ----------------------------------------- |---------------------- |
+| Grafana                      | http://grafana:3000                       | http://localhost:3000 |
+| Prometheus                   | http://prometheus:9090                    | http://localhost:9090 |
+| Node-Exporter                | http://node-exporter:9100                 | http://localhost:9100 |
+| cAdvisor                     | http://cadvisor:8080                      | N/A                   |
+| Alertmanager                 | http://alertmanager:9093                  | http://localhost:9093 |
+| Uncomplicated Alert Receiver | http://uncomplicated-alert-receiver:9094  | http://localhost:9094 |
+| Loki                         | http://loki:3100                          | http://localhost:3100 |
+
+## Cleanup
+
+To remove the containers using docker compose (or `make clean`):
+
+```bash
+docker-compose down
+```
+
+## Stargazers over time
+
+## Resources
+
+Heavily inspired from [this exporter guide](https://grafana.com/oss/prometheus/exporters/node-exporter/)
